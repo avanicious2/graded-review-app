@@ -5,10 +5,14 @@ import Image from 'next/image';
 import {
   Box,
   VStack,
-  HStack,
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
   Button,
   Text,
-  Container
+  Container,
+  Heading
 } from '@chakra-ui/react';
 
 export default function Home() {
@@ -21,8 +25,8 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [reviewCounter, setReviewCounter] = useState(0);
+  const [sliderValue, setSliderValue] = useState(3);
 
-  // Modify fetchProducts to accept currentIndex
   const fetchProducts = async (userEmail) => {
     setLoading(true);
     setError('');
@@ -36,7 +40,7 @@ export default function Home() {
       }
 
       setProducts(data || []);
-      setCurrentIndex(0); // Always start from first product
+      setCurrentIndex(0);
     } catch (err) {
       setError(err.message || 'Failed to load products');
     } finally {
@@ -52,16 +56,14 @@ export default function Home() {
       setEmail(savedEmail);
       setIsAuthenticated(true);
 
-      // Restore from localStorage if products and currentIndex are available
       if (savedProducts) {
         setProducts(JSON.parse(savedProducts));
         setCurrentIndex(savedIndex ? parseInt(savedIndex, 10) : 0);
       } else {
-        // Fetch products only if not available in localStorage
         fetchProducts(savedEmail);
       }
     }
-  }, []); // Remove fetchProducts from dependencies since it's defined outside
+  }, []);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -92,7 +94,7 @@ export default function Home() {
     }
   };
 
-  const submitReview = async (score) => {
+  const submitReview = async () => {
     if (submitting) return;
     setSubmitting(true);
     setError('');
@@ -104,7 +106,7 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           scrape_id: currentProduct.scrape_id,
-          review_score: score,
+          graded_review: parseFloat(sliderValue.toFixed(2)),
           reviewer_email: email,
         }),
       });
@@ -116,6 +118,7 @@ export default function Home() {
       }
 
       setReviewCounter((prev) => prev + 1);
+      setSliderValue(3); // Reset slider to middle position
 
       if (currentIndex < products.length - 1) {
         const newIndex = currentIndex + 1;
@@ -133,12 +136,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // Save current index to local storage when leaving the tab
     return () => {
       localStorage.setItem('currentProductIndex', currentIndex.toString());
     };
   }, [currentIndex]);
-
 
   return (
     <Box 
@@ -260,38 +261,49 @@ export default function Home() {
             borderTopWidth={1}
             borderBottomWidth={1}
             borderColor="gray.200"
-            p={4}
+            p={6}
             pt="env(safe-area-inset-bottom)"
             pb="env(safe-area-inset-bottom)"
           >
-            <HStack justify="space-between" align="center">
-              <Button
-                onClick={() => submitReview(0)}
-                isLoading={submitting}
-                loadingText="..."
-                colorScheme="red"
-                size="lg"
-                borderRadius="full"
-                flex={1}
-                py={6}
-                fontSize="xl"
+            <Heading size="md" mb={6} textAlign="center">
+              How likely are you to wear this outfit for college?
+            </Heading>
+            
+            <Box px={4} mb={6}>
+              <Slider
+                defaultValue={3}
+                min={1}
+                max={5}
+                step={0.1}
+                value={sliderValue}
+                onChange={setSliderValue}
               >
-                👎 Dislike
-              </Button>
-              <Button
-                onClick={() => submitReview(1)}
-                isLoading={submitting}
-                loadingText="..."
-                colorScheme="green"
-                size="lg"
-                borderRadius="full"
-                flex={1}
-                py={6}
-                fontSize="xl"
-              >
-                👍 Like
-              </Button>
-            </HStack>
+                <SliderTrack bg="gray.200">
+                  <SliderFilledTrack 
+                    bg={sliderValue < 3 ? 'red.500' : sliderValue > 3 ? 'green.500' : 'gray.200'} 
+                    opacity={Math.abs(sliderValue - 3) / 2}
+                  />
+                </SliderTrack>
+                <SliderThumb boxSize={6} />
+              </Slider>
+              
+              <Box display="flex" justifyContent="space-between" mt={2}>
+                <Text color="gray.600">Very Unlikely</Text>
+                <Text color="gray.600">Very Likely</Text>
+              </Box>
+            </Box>
+
+            <Button
+              onClick={submitReview}
+              isLoading={submitting}
+              loadingText="Submitting..."
+              colorScheme="blue"
+              size="lg"
+              w="full"
+              borderRadius="full"
+            >
+              Submit Review
+            </Button>
           </Box>
         </Box>
       )}

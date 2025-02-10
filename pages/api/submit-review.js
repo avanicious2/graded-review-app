@@ -11,18 +11,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { scrape_id, review_score, reviewer_email } = req.body;
-  console.log('Extracted parameters:', { scrape_id, review_score, reviewer_email });
+  const { scrape_id, graded_review, reviewer_email } = req.body;
+  console.log('Extracted parameters:', { scrape_id, graded_review, reviewer_email });
 
-  if (!scrape_id || review_score === undefined || !reviewer_email) {
+  if (!scrape_id || graded_review === undefined || !reviewer_email) {
     console.log('Missing required fields:', {
       scrape_id: !!scrape_id,
-      review_score: review_score !== undefined,
+      graded_review: graded_review !== undefined,
       reviewer_email: !!reviewer_email
     });
     return res.status(400).json({
       error: 'Missing required fields',
-      received: { scrape_id, review_score, reviewer_email },
+      received: { scrape_id, graded_review, reviewer_email },
     });
   }
 
@@ -46,12 +46,12 @@ export default async function handler(req, res) {
     console.log('Generated review ID:', reviewId);
 
     const insertQuery = `INSERT INTO reviews 
-       (id, scrape_id, review_score, reviewer_email, created_at) 
+       (id, scrape_id, graded_review, reviewer_email, created_at) 
        VALUES (?, ?, ?, ?, NOW())`;
     console.log('Insert review query:', insertQuery);
-    console.log('Insert params:', [reviewId, scrape_id, review_score, reviewer_email]);
+    console.log('Insert params:', [reviewId, scrape_id, graded_review, reviewer_email]);
     
-    const result = await db.query(insertQuery, [reviewId, scrape_id, review_score, reviewer_email]);
+    const result = await db.query(insertQuery, [reviewId, scrape_id, graded_review, reviewer_email]);
     console.log('Insert result:', result);
 
     await db.end();
