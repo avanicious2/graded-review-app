@@ -1,6 +1,5 @@
 // pages/api/submit-review.js
 import db from '../../lib/db';
-import { randomUUID } from 'crypto';
 
 export default async function handler(req, res) {
   console.log('Submit review API called with method:', req.method);
