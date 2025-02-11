@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
   try {
     // Get user's batch number
-    const batchQuery = 'SELECT batch_number FROM user_identities WHERE email = ?';
+    const batchQuery = 'SELECT search_review_batch FROM user_identities WHERE email = ?';
     console.log('Executing batch query:', batchQuery);
     console.log('With params:', [email]);
     
@@ -41,9 +41,9 @@ export default async function handler(req, res) {
        LIMIT 300`;
     
     console.log('Executing images query:', imagesQuery);
-    console.log('With params:', [email, userData.batch_number]);
+    console.log('With params:', [email, userData.search_review_batch]);
     
-    const images = await db.query(imagesQuery, [email, userData.batch_number]);
+    const images = await db.query(imagesQuery, [email, userData.search_review_batch]);
     console.log('Found images count:', images.length);
     console.log('First image sample:', images[0]);
 
