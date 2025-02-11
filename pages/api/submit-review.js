@@ -11,47 +11,44 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { scrape_id, graded_review, reviewer_email } = req.body;
-  console.log('Extracted parameters:', { scrape_id, graded_review, reviewer_email });
+  const { alle_ingestion_id, review_score, reviewer_email } = req.body;
+  console.log('Extracted parameters:', { alle_ingestion_id, review_score, reviewer_email });
 
-  if (!scrape_id || graded_review === undefined || !reviewer_email) {
+  if (!alle_ingestion_id || review_score === undefined || !reviewer_email) {
     console.log('Missing required fields:', {
-      scrape_id: !!scrape_id,
-      graded_review: graded_review !== undefined,
+      alle_ingestion_id: !!alle_ingestion_id,
+      review_score: review_score !== undefined,
       reviewer_email: !!reviewer_email
     });
     return res.status(400).json({
       error: 'Missing required fields',
-      received: { scrape_id, graded_review, reviewer_email },
+      received: { alle_ingestion_id, review_score, reviewer_email },
     });
   }
 
   try {
     // Check for existing review
-    const checkExistingQuery = `SELECT 1 FROM reviews WHERE scrape_id = ? AND reviewer_email = ?`;
+    const checkExistingQuery = `SELECT 1 FROM search_image_reviews WHERE alle_ingestion_id = ? AND reviewer_email = ?`;
     console.log('Checking existing review query:', checkExistingQuery);
-    console.log('Check existing params:', [scrape_id, reviewer_email]);
+    console.log('Check existing params:', [alle_ingestion_id, reviewer_email]);
     
-    const checkExistingReview = await db.query(checkExistingQuery, [scrape_id, reviewer_email]);
+    const checkExistingReview = await db.query(checkExistingQuery, [alle_ingestion_id, reviewer_email]);
     console.log('Existing review check result:', checkExistingReview);
 
     if (checkExistingReview.length > 0) {
-      console.log('Duplicate review attempted for scrape_id:', scrape_id);
+      console.log('Duplicate review attempted for alle_ingestion_id:', alle_ingestion_id);
       await db.end();
-      return res.status(400).json({ error: 'You have already reviewed this product' });
+      return res.status(400).json({ error: 'You have already reviewed this image' });
     }
 
     // Insert new review
-    const reviewId = randomUUID();
-    console.log('Generated review ID:', reviewId);
-
-    const insertQuery = `INSERT INTO reviews 
-       (id, scrape_id, graded_review, reviewer_email, created_at) 
-       VALUES (?, ?, ?, ?, NOW())`;
+    const insertQuery = `INSERT INTO search_image_reviews 
+       (alle_ingestion_id, review_score, reviewer_email) 
+       VALUES (?, ?, ?)`;
     console.log('Insert review query:', insertQuery);
-    console.log('Insert params:', [reviewId, scrape_id, graded_review, reviewer_email]);
+    console.log('Insert params:', [alle_ingestion_id, review_score, reviewer_email]);
     
-    const result = await db.query(insertQuery, [reviewId, scrape_id, graded_review, reviewer_email]);
+    const result = await db.query(insertQuery, [alle_ingestion_id, review_score, reviewer_email]);
     console.log('Insert result:', result);
 
     await db.end();

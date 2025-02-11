@@ -2,7 +2,7 @@
 import db from '../../lib/db';
 
 export default async function handler(req, res) {
-  console.log('Products API called');
+  console.log('Images API called');
   console.log('Request query params:', req.query);
   
   if (req.method !== 'GET') {
@@ -31,32 +31,30 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Get unreviewed products
-    const productsQuery = `SELECT i.* 
-       FROM input_products i
-       LEFT JOIN reviews r ON r.scrape_id = i.scrape_id AND r.reviewer_email = ?
+    // Get unreviewed images
+    const imagesQuery = `SELECT i.* 
+       FROM search_images i
+       LEFT JOIN search_image_reviews r ON r.alle_ingestion_id = i.alle_ingestion_id AND r.reviewer_email = ?
        WHERE i.assigned_batch = ?
-       AND i.reviews_uploaded = 0
-       AND (r.graded_review IS NULL)
        AND (r.review_score IS NULL)
-       ORDER BY i.created_at desc
+       ORDER BY i.id desc
        LIMIT 300`;
     
-    console.log('Executing products query:', productsQuery);
+    console.log('Executing images query:', imagesQuery);
     console.log('With params:', [email, userData.batch_number]);
     
-    const products = await db.query(productsQuery, [email, userData.batch_number]);
-    console.log('Found products count:', products.length);
-    console.log('First product sample:', products[0]);
+    const images = await db.query(imagesQuery, [email, userData.batch_number]);
+    console.log('Found images count:', images.length);
+    console.log('First image sample:', images[0]);
 
     await db.end();
     console.log('Database connection closed');
-    return res.status(200).json(products);
+    return res.status(200).json(images);
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching images:', error);
     console.error('Error stack:', error.stack);
     await db.end();
     console.log('Database connection closed after error');
-    return res.status(500).json({ error: 'Failed to load products' });
+    return res.status(500).json({ error: 'Failed to load images' });
   }
 }

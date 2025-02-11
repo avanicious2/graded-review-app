@@ -26,6 +26,31 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [reviewCounter, setReviewCounter] = useState(0);
   const [sliderValue, setSliderValue] = useState(3);
+  const [currentImageUrl, setCurrentImageUrl] = useState('');
+
+  const fetchImageUrl = async (product) => {
+    try {
+      const response = await fetch('/api/gen-s3-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          alle_ingestion_id: product.alle_ingestion_id,
+          alle_media_key: product.alle_media_key
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate image URL');
+      }
+
+      setCurrentImageUrl(data.url);
+    } catch (err) {
+      setError('Failed to load image URL');
+      console.error('Error fetching image URL:', err);
+    }
+  };
 
   const fetchProducts = async (userEmail) => {
     setLoading(true);
@@ -41,6 +66,11 @@ export default function Home() {
 
       setProducts(data || []);
       setCurrentIndex(0);
+      
+      // If we have products, fetch the S3 URL for the first product
+      if (data && data.length > 0) {
+        await fetchImageUrl(data[0]);
+      }
     } catch (err) {
       setError(err.message || 'Failed to load products');
     } finally {
@@ -52,13 +82,19 @@ export default function Home() {
     const savedEmail = localStorage.getItem('userEmail');
     const savedIndex = localStorage.getItem('currentProductIndex');
     const savedProducts = localStorage.getItem('products');
+    
     if (savedEmail) {
       setEmail(savedEmail);
       setIsAuthenticated(true);
 
       if (savedProducts) {
-        setProducts(JSON.parse(savedProducts));
-        setCurrentIndex(savedIndex ? parseInt(savedIndex, 10) : 0);
+        const parsedProducts = JSON.parse(savedProducts);
+        setProducts(parsedProducts);
+        const index = savedIndex ? parseInt(savedIndex, 10) : 0;
+        setCurrentIndex(index);
+        if (parsedProducts[index]) {
+          fetchImageUrl(parsedProducts[index]);
+        }
       } else {
         fetchProducts(savedEmail);
       }
@@ -105,8 +141,8 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          scrape_id: currentProduct.scrape_id,
-          graded_review: parseFloat(sliderValue.toFixed(2)),
+          alle_ingestion_id: currentProduct.alle_ingestion_id,
+          review_score: parseFloat(sliderValue.toFixed(2)),
           reviewer_email: email,
         }),
       });
@@ -124,6 +160,8 @@ export default function Home() {
         const newIndex = currentIndex + 1;
         setCurrentIndex(newIndex);
         localStorage.setItem('currentProductIndex', newIndex.toString());
+        // Fetch URL for next product
+        await fetchImageUrl(products[newIndex]);
       } else {
         setCurrentIndex(products.length);
         localStorage.removeItem('currentProductIndex');
@@ -234,21 +272,19 @@ export default function Home() {
             m={4}
           >
             <Box position="relative" pt="100%">
-              <Image
-                src={products[currentIndex].product_primary_image_url}
-                alt={products[currentIndex].product_name}
-                fill
-                style={{ objectFit: 'contain', pointerEvents: 'none' }}
-              />
+              {currentImageUrl && (
+                <Image
+                  src={currentImageUrl}
+                  alt={`Product ${products[currentIndex].alle_ingestion_id}`}
+                  fill
+                  style={{ objectFit: 'contain', pointerEvents: 'none' }}
+                />
+              )}
             </Box>
 
             <Box p={4}>
-              <Text fontSize="sm" color="gray.500" mb={1}>Products reviewed: {reviewCounter}</Text>
-              <Text fontSize="sm" color="gray.500" mb={2}>ID: {products[currentIndex].scrape_id}</Text>
-              <Text fontSize="lg" fontWeight="medium" color="gray.800">
-                {products[currentIndex].brand_name} | {products[currentIndex].product_name}
-              </Text>
-              <Text fontSize="xl" fontWeight="bold" mt={1}>₹{products[currentIndex].selling_price}</Text>
+              <Text fontSize="sm" color="gray.500" mb={1}>Images reviewed: {reviewCounter}</Text>
+              <Text fontSize="sm" color="gray.500" mb={2}>ID: {products[currentIndex].alle_ingestion_id}</Text>
             </Box>
           </Box>
 
@@ -262,7 +298,7 @@ export default function Home() {
             borderBottomWidth={1}
             borderColor="gray.200"
             p={6}
-            pt="env(safe-area-inset-bottom)"
+            pt={10}
             pb="env(safe-area-inset-bottom)"
           >
             <Heading size="md" mb={6} textAlign="center">
