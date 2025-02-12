@@ -23,11 +23,11 @@ export default async function handler(req, res) {
     const todayStatsQuery = `
       SELECT 
         COALESCE(COUNT(r.id), 0) AS reviews, 
-        COALESCE(SUM(r.review_score), 0) AS likes
+        COALESCE(AVG(r.review_score), 0) AS likes
       FROM 
         user_identities ui
       LEFT JOIN 
-        reviews r ON r.reviewer_email = ui.email 
+        search_image_reviews r ON r.reviewer_email = ui.email 
       WHERE 
         ui.email = ?
         AND DATE(CONVERT_TZ(r.created_at, 'UTC', 'Asia/Kolkata')) = 
@@ -44,11 +44,11 @@ export default async function handler(req, res) {
       SELECT 
         DATE(CONVERT_TZ(r.created_at, 'UTC', 'Asia/Kolkata')) AS date,
         COALESCE(COUNT(r.id), 0) AS reviews, 
-        COALESCE(SUM(r.review_score), 0) AS likes
+        COALESCE(AVG(r.review_score), 0) AS likes
       FROM 
         user_identities ui
       LEFT JOIN 
-        reviews r ON r.reviewer_email = ui.email 
+        search_image_reviews r ON r.reviewer_email = ui.email 
       WHERE 
         ui.email = ?
         AND r.created_at >= DATE_SUB(NOW(), INTERVAL 10 DAY)

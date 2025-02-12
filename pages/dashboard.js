@@ -94,7 +94,7 @@ export default function Dashboard() {
           <GridItem>
             <Box bg="white" p={6} borderRadius="lg" boxShadow="md" textAlign="center">
               <Stat>
-                <StatLabel fontSize="lg">Likes today</StatLabel>
+                <StatLabel fontSize="lg">Avg Likes today</StatLabel>
                 <StatNumber fontSize="4xl">{todayStats.likes}</StatNumber>
               </Stat>
             </Box>
@@ -108,7 +108,7 @@ export default function Dashboard() {
               <Tr>
                 <Th>Date</Th>
                 <Th isNumeric>Reviews</Th>
-                <Th isNumeric>Likes</Th>
+                <Th isNumeric>Avg Likes</Th>
               </Tr>
             </Thead>
             <Tbody>
