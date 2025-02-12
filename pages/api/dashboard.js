@@ -63,12 +63,42 @@ export default async function handler(req, res) {
     const historicalData = await db.query(historicalQuery, [email]);
     console.log('Historical data result:', historicalData);
 
+    // Get pending reviews count with dynamic batch
+    const pendingReviewsQuery = `
+      WITH user_batch AS (
+        SELECT search_review_batch 
+        FROM user_identities 
+        WHERE email = ?
+      )
+      SELECT 
+        COALESCE(
+          (
+            SELECT COUNT(*) 
+            FROM search_images si
+            JOIN user_batch ub
+            WHERE si.assigned_batch = ub.search_review_batch
+          ) - 
+          (
+            SELECT COUNT(*) 
+            FROM search_image_reviews sir
+            WHERE sir.reviewer_email = ?
+          ),
+          0
+        ) AS pending_reviews
+    `;
+    console.log('Pending reviews query:', pendingReviewsQuery);
+    console.log('Pending reviews params:', [email, email]);
+
+    const [pendingReviews] = await db.query(pendingReviewsQuery, [email, email]);
+    console.log('Pending reviews result:', pendingReviews);
+
     await db.end();
     console.log('Successfully fetched dashboard data');
     
     const response = {
       today: todayStats,
-      historical: historicalData
+      historical: historicalData,
+      pending: pendingReviews.pending_reviews
     };
     console.log('Sending response:', response);
     

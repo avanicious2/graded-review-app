@@ -22,6 +22,7 @@ import {
 export default function Dashboard() {
   const [todayStats, setTodayStats] = useState({ reviews: 0, likes: 0 });
   const [historicalData, setHistoricalData] = useState([]);
+  const [pendingReviews, setPendingReviews] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -52,6 +53,7 @@ export default function Dashboard() {
 
       setTodayStats(data.today);
       setHistoricalData(data.historical);
+      setPendingReviews(data.pending);
     } catch (err) {
       console.error('Dashboard data fetch error:', err);
       setError(err.message || 'Failed to load dashboard data');
@@ -81,6 +83,13 @@ export default function Dashboard() {
       )}
 
       <Container maxW="container.md">
+        {/* Pending Reviews Box */}
+        <Box bg="white" p={6} borderRadius="lg" boxShadow="md" textAlign="center" mb={6}>
+          <Stat>
+            <StatLabel fontSize="lg">Pending Reviews</StatLabel>
+            <StatNumber fontSize="4xl">{pendingReviews}</StatNumber>
+          </Stat>
+        </Box>
         {/* Responsive Grid for Stats */}
         <Grid templateColumns={{ base: '1fr', sm: '1fr 1fr' }} gap={6} mb={8}>
           <GridItem>
