@@ -99,7 +99,7 @@ export default function Home() {
         fetchProducts(savedEmail);
       }
     }
-  }, [fetchProducts]); // Added fetchProducts to dependency array
+  }, []);
 
   const handleAuth = async (e) => {
     e.preventDefault();
