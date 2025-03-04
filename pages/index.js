@@ -99,7 +99,7 @@ export default function Home() {
         fetchProducts(savedEmail);
       }
     }
-  }, []);
+  }, [fetchProducts]); // Added fetchProducts to dependency array
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -302,7 +302,7 @@ export default function Home() {
             pb="env(safe-area-inset-bottom)"
           >
             <Heading size="md" mb={6} textAlign="center">
-              How likely are you to save this result for "{products[currentIndex]?.pinterest_query || 'this occasion'}"?
+              How likely are you to save this result for &ldquo;{products[currentIndex]?.pinterest_query || 'this occasion'}&rdquo;?
             </Heading>
             
             <Box px={4} mb={6}>
