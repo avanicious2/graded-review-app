@@ -302,7 +302,7 @@ export default function Home() {
             pb="env(safe-area-inset-bottom)"
           >
             <Heading size="md" mb={6} textAlign="center">
-              How likely are you to wear this outfit for college?
+              How likely are you to save this result for "{products[currentIndex]?.pinterest_query || 'this occasion'}"?
             </Heading>
             
             <Box px={4} mb={6}>

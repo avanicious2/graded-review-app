@@ -37,7 +37,7 @@ export default async function handler(req, res) {
        LEFT JOIN search_image_reviews r ON r.alle_ingestion_id = i.alle_ingestion_id AND r.reviewer_email = ?
        WHERE i.assigned_batch = ?
        AND (r.review_score IS NULL)
-       ORDER BY RAND()
+       ORDER BY id desc 
        LIMIT 300`;
     
     console.log('Executing images query:', imagesQuery);
